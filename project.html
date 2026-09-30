@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>Online Library</title>
+
+<style>
+
+body {
+    font-family: Arial;
+    background: #f2f2f2;
+    text-align: center;
+}
+
+.box {
+    background: white;
+    width: 90%;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+input, button {
+    padding: 10px;
+    margin: 5px;
+}
+
+button {
+    background: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.delete {
+    background: #e74c3c;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+}
+
+th {
+    background: #34495e;
+    color: white;
+}
+
+#libraryPage {
+    display: none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="box" id="registerPage">
+
+<h1>Online Library Management System</h1>
+
+<h2>Register Member</h2>
+
+<input id="memberName" placeholder="Member Name">
+
+<button onclick="addMember()">Register</button>
+
+<h3 id="message"></h3>
+
+<br>
+
+<button onclick="showLibrary()">Go to Library</button>
+
+</div>
+
+<div class="box" id="libraryPage">
+
+<h1>Online Library Management System</h1>
+
+
+<h2>Add Book</h2>
+
+<input id="bookName" placeholder="Book Name">
+
+<input id="author" placeholder="Author">
+
+<button onclick="addBook()">Add Book</button>
+
+
+<h2>Books</h2>
+
+<table>
+
+<tr>
+    <th>Book</th>
+    <th>Author</th>
+    <th>Status</th>
+    <th>Action</th>
+</tr>
+
+<tbody id="bookList"></tbody>
+
+</table>
+
+
+<h2>Members</h2>
+
+<ol id="memberList"></ol>
+
+
+<br>
+
+<button onclick="showRegister()">
+Register New Member
+</button>
+
+</div>
+
+
+
+<script>
+
+let books = [];
+
+let members = [];
+
+
+function addMember() {
+
+    let name =
+        document.getElementById("memberName").value;
+
+    if (name == "") {
+
+        alert("Enter member name");
+
+        return;
+    }
+
+    members.push(name);
+
+    document.getElementById("memberName").value = "";
+
+    document.getElementById("message").innerHTML =
+        "Member registered";
+
+    showMembers();
+}
+
+function showLibrary() {
+
+    if (members.length == 0) {
+
+        alert("First register a member");
+
+        return;
+    }
+
+    document.getElementById("registerPage").style.display =
+        "none";
+
+    document.getElementById("libraryPage").style.display =
+        "block";
+
+    showMembers();
+}
+
+
+function showRegister() {
+
+    document.getElementById("libraryPage").style.display =
+        "none";
+
+    document.getElementById("registerPage").style.display =
+        "block";
+}
+
+function addBook() {
+
+    let name =
+        document.getElementById("bookName").value;
+
+    let author =
+        document.getElementById("author").value;
+
+
+    if (name == "" || author == "") {
+
+        alert("Please enter book name and author");
+
+        return;
+    }
+
+
+    books.push({
+
+        name: name,
+
+        author: author,
+
+        status: "Available",
+
+        due: ""
+
+    });
+
+
+    document.getElementById("bookName").value = "";
+
+    document.getElementById("author").value = "";
+
+
+    showBooks();
+}
+
+
+
+
+function showBooks() {
+
+    let list = "";
+
+
+    books.forEach(function(book, i) {
+
+        list += `
+
+        <tr>
+
+        <td>${book.name}</td>
+
+        <td>${book.author}</td>
+
+        <td>${book.status}</td>
+
+        <td>
+
+        ${
+            book.status == "Available"
+
+            ? `<button onclick="issueBook(${i})">
+               Issue
+               </button>`
+
+            : `<button onclick="returnBook(${i})">
+               Return
+               </button>`
+        }
+
+
+        <button class="delete"
+        onclick="deleteBook(${i})">
+
+        Delete
+
+        </button>
+
+
+        </td>
+
+        </tr>
+
+        `;
+
+    });
+
+
+    document.getElementById("bookList").innerHTML =
+        list;
+}
+
+
+function showMembers() {
+
+    let list = "";
+
+
+    members.forEach(function(member) {
+
+        list += `<li>${member}</li>`;
+
+    });
+
+
+    document.getElementById("memberList").innerHTML =
+        list;
+}
+
+function issueBook(i) {
+
+    if (members.length == 0) {
+        alert("First register a member");
+        return;
+    }
+
+    let member = prompt("Enter member name:");
+
+    if (member == "") {
+        return;
+    }
+
+    let today = new Date();
+
+    let dueDate = new Date();
+
+    dueDate.setDate(today.getDate() + 5);
+
+    books[i].status = "Issued to " + member;
+
+    books[i].due = dueDate.toLocaleDateString();
+
+    alert("Book issued!\nDue Date: " + books[i].due);
+
+    showBooks();
+}
+
+function returnBook(i) {
+
+    let today = new Date();
+
+    let dueDate = new Date(books[i].due);
+
+    let lateDays = Math.ceil(
+        (today - dueDate) / (1000 * 60 * 60 * 24)
+    );
+
+    if (lateDays < 0) {
+        lateDays = 0;
+    }
+
+    let fine = lateDays * 10;
+
+    books[i].status = "Available";
+    books[i].due = "";
+
+    alert(
+        "Book returned!\n" +
+        "Late Days: " + lateDays + "\n" +
+        "Fine: ₹" + fine
+    );
+
+    showBooks();
+}
+
+
+
+
+function deleteBook(i) {
+
+    if (confirm("Delete this book?")) {
+
+        books.splice(i, 1);
+
+        showBooks();
+    }
+}
+
+</script>
+
+</body>
+</html>
+
